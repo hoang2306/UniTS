@@ -86,9 +86,9 @@ task_dataset:
     pred_len: 0
     features: M
     embed: timeF
-    enc_in: 55
-    dec_in: 55
-    c_out: 55
+    enc_in: 9
+    dec_in: 9
+    c_out: 9
 
   Environment:
     task_name: anomaly_detection
@@ -101,9 +101,9 @@ task_dataset:
     pred_len: 0
     features: M
     embed: timeF
-    enc_in: 55
-    dec_in: 55
-    c_out: 55
+    enc_in: 1
+    dec_in: 1
+    c_out: 1
 
   EWJ:
     task_name: anomaly_detection
@@ -116,9 +116,9 @@ task_dataset:
     pred_len: 0
     features: M
     embed: timeF
-    enc_in: 55
-    dec_in: 55
-    c_out: 55
+    enc_in: 1
+    dec_in: 1
+    c_out: 1
 
   KR:
     task_name: anomaly_detection
@@ -131,9 +131,9 @@ task_dataset:
     pred_len: 0
     features: M
     embed: timeF
-    enc_in: 55
-    dec_in: 55
-    c_out: 55
+    enc_in: 1
+    dec_in: 1
+    c_out: 1
 
   MDT:
     task_name: anomaly_detection
@@ -146,9 +146,9 @@ task_dataset:
     pred_len: 0
     features: M
     embed: timeF
-    enc_in: 55
-    dec_in: 55
-    c_out: 55
+    enc_in: 1
+    dec_in: 1
+    c_out: 1
   
   Weather:
     task_name: anomaly_detection
@@ -161,9 +161,9 @@ task_dataset:
     pred_len: 0
     features: M
     embed: timeF
-    enc_in: 55
-    dec_in: 55
-    c_out: 55
+    enc_in: 4
+    dec_in: 4
+    c_out: 4
 
   
 
