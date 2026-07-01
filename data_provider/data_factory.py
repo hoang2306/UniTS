@@ -1,5 +1,5 @@
 from data_provider.data_loader import Dataset_ETT_hour, Dataset_ETT_minute, Dataset_Custom, PSMSegLoader, \
-    MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, UEAloader, GLUONTSDataset
+    MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, UEAloader, GLUONTSDataset, NewADSegLoader
 from data_provider.uea import collate_fn
 import torch
 from torch.utils.data import DataLoader, Subset
@@ -12,15 +12,24 @@ data_dict = {
     'ETTm2': Dataset_ETT_minute,
     'custom': Dataset_Custom,
     # 'm4': Dataset_M4,  Removed due to the LICENSE file constraints of m4.py
-    'PSM': PSMSegLoader,
-    'MSL': MSLSegLoader,
-    'SMAP': SMAPSegLoader,
-    'SMD': SMDSegLoader,
-    'SWAT': SWATSegLoader,
+    'PSM': PSMSegLoader, # AD
+    'MSL': MSLSegLoader, # AD
+    'SMAP': SMAPSegLoader, # AD
+    'SMD': SMDSegLoader, # AD
+    'SWAT': SWATSegLoader, # AD 
     'UEA': UEAloader,
     # datasets from gluonts package:
-    "gluonts": GLUONTSDataset,
-}
+    "gluonts": GLUONTSDataset, 
+    "Energy": NewADSegLoader, # AD 
+    "Environment": NewADSegLoader, # AD
+    "EWJ": NewADSegLoader, # AD 
+    "KR": NewADSegLoader, # AD
+    "MDT": NewADSegLoader, # AD 
+    "Weather": NewADSegLoader # AD 
+} 
+
+# data for anomaly detection: MSL, PSM, SMAP, SMD, SWAT 
+# additional dataset for AD: Energy, Environment, EWJ, KR, MDT, Weather
 
 
 def random_subset(dataset, pct, seed):

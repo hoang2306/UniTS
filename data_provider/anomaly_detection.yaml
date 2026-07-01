@@ -73,3 +73,97 @@ task_dataset:
     enc_in: 51
     dec_in: 51
     c_out: 51
+  
+  # setting for new dataset 
+  Energy:
+    task_name: anomaly_detection
+    dataset_name: Energy
+    dataset: Energy
+    data: Energy
+    root_path: ../dataset/Energy
+    seq_len: 96
+    label_len: 0
+    pred_len: 0
+    features: M
+    embed: timeF
+    enc_in: 55
+    dec_in: 55
+    c_out: 55
+
+  Environment:
+    task_name: anomaly_detection
+    dataset_name: Environment
+    dataset: Environment
+    data: Environment
+    root_path: ../dataset/Environment
+    seq_len: 96
+    label_len: 0
+    pred_len: 0
+    features: M
+    embed: timeF
+    enc_in: 55
+    dec_in: 55
+    c_out: 55
+
+  EWJ:
+    task_name: anomaly_detection
+    dataset_name: EWJ
+    dataset: EWJ
+    data: EWJ
+    root_path: ../dataset/EWJ
+    seq_len: 96
+    label_len: 0
+    pred_len: 0
+    features: M
+    embed: timeF
+    enc_in: 55
+    dec_in: 55
+    c_out: 55
+
+  KR:
+    task_name: anomaly_detection
+    dataset_name: KR
+    dataset: KR
+    data: KR
+    root_path: ../dataset/KR
+    seq_len: 96
+    label_len: 0
+    pred_len: 0
+    features: M
+    embed: timeF
+    enc_in: 55
+    dec_in: 55
+    c_out: 55
+
+  MDT:
+    task_name: anomaly_detection
+    dataset_name: MDT
+    dataset: MDT
+    data: MDT
+    root_path: ../dataset/MDT
+    seq_len: 96
+    label_len: 0
+    pred_len: 0
+    features: M
+    embed: timeF
+    enc_in: 55
+    dec_in: 55
+    c_out: 55
+  
+  Weather:
+    task_name: anomaly_detection
+    dataset_name: Weather
+    dataset: Weather
+    data: Weather
+    root_path: ../dataset/Weather
+    seq_len: 96
+    label_len: 0
+    pred_len: 0
+    features: M
+    embed: timeF
+    enc_in: 55
+    dec_in: 55
+    c_out: 55
+
+  
+
