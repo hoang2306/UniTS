@@ -290,7 +290,17 @@ class Exp_All_Task(object):
                         ckpt[k] = v
             else:
                 ckpt = torch.load(pretrain_weight_path, map_location='cpu', weights_only=False)
-            msg = self.model.load_state_dict(ckpt, strict=False)
+            model_state = self.model.state_dict()
+            filtered_ckpt = {}
+            skipped_keys = []
+            for k, v in ckpt.items():
+                if k in model_state and model_state[k].shape == v.shape:
+                    filtered_ckpt[k] = v
+                else:
+                    skipped_keys.append(k)
+            if skipped_keys:
+                print('skip mismatched checkpoint keys:', skipped_keys, folder=self.path)
+            msg = self.model.load_state_dict(filtered_ckpt, strict=False)
             print(msg, folder=self.path)
 
         # Data
