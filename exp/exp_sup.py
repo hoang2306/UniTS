@@ -834,25 +834,25 @@ class Exp_All_Task(object):
 
         best_result = None
         for anomaly_ratio in anomaly_ratios:
-            print("=" * 80)
-            print("Evaluating anomaly_ratio:", anomaly_ratio)
+            # print("=" * 80)
+            # print("Evaluating anomaly_ratio:", anomaly_ratio)
             threshold = np.percentile(
                 combined_energy, 100 - anomaly_ratio)
-            print("anomaly_ratio:", anomaly_ratio, "Threshold:", threshold)
+            # print("anomaly_ratio:", anomaly_ratio, "Threshold:", threshold)
 
             # (3) evaluation on the test set
             pred = (test_energy > threshold).astype(int)
 
-            print("pred:   ", pred.shape)
-            print("gt:     ", gt.shape)
+            # print("pred:   ", pred.shape)
+            # print("gt:     ", gt.shape)
 
             # (4) detection adjustment
             adjusted_gt, adjusted_pred = adjustment(gt.copy(), pred)
 
             adjusted_pred = np.array(adjusted_pred)
             adjusted_gt = np.array(adjusted_gt)
-            print("pred: ", adjusted_pred.shape)
-            print("gt:   ", adjusted_gt.shape)
+            # print("pred: ", adjusted_pred.shape)
+            # print("gt:   ", adjusted_gt.shape)
             accuracy = accuracy_score(adjusted_gt, adjusted_pred)
             precision, recall, f_score, support = precision_recall_fscore_support(
                 adjusted_gt, adjusted_pred, average='binary')
