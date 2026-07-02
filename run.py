@@ -79,6 +79,9 @@ if __name__ == '__main__':
                         default='tsfm-multitask', help='wandb project name')
 
     # model settings
+    parser.add_argument('--use_text', action='store_true', default=False, help='use text embeddings')
+    parser.add_argument('--d_text', type=int, default=1024, help='text embedding dimension')
+    parser.add_argument('--text_fusion_type', type=str, default='add_patch', choices=['add_patch', 'add_prompt', 'concat_prompt'], help='type of text embedding fusion')
     parser.add_argument('--d_model', type=int, default=512,
                         help='dimension of model')
     parser.add_argument('--n_heads', type=int, default=8, help='num of heads')

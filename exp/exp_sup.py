@@ -540,7 +540,7 @@ class Exp_All_Task(object):
         features = config['features']
 
         batch_text = None
-        if len(this_batch) >= 3:
+        if getattr(self.args, 'use_text', False) and len(this_batch) >= 3:
             batch_x, _, batch_text = this_batch[:3]
             batch_text = batch_text.float().to(self.device_id)
         else:
@@ -801,7 +801,7 @@ class Exp_All_Task(object):
         with torch.no_grad():
             for i, batch in enumerate(train_loader):
                 batch_text = None
-                if len(batch) >= 3:
+                if getattr(self.args, 'use_text', False) and len(batch) >= 3:
                     batch_x, _, batch_text = batch[:3]
                     batch_text = batch_text.float().to(self.device_id)
                 else:
@@ -824,7 +824,7 @@ class Exp_All_Task(object):
         test_labels = []
         for i, batch in enumerate(test_loader):
             batch_text = None
-            if len(batch) >= 3:
+            if getattr(self.args, 'use_text', False) and len(batch) >= 3:
                 batch_x, batch_y, batch_text = batch[:3]
                 batch_text = batch_text.float().to(self.device_id)
             else:
