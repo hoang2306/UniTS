@@ -292,6 +292,8 @@ class Exp_All_Task(object):
             else:
                 print(f'Loading weights from {pretrain_weight_path}', folder=self.path)
                 ckpt = torch.load(pretrain_weight_path, map_location='cpu', weights_only=False)
+            
+            print(f'done loading pretrained model, start to load weights into model', folder=self.path)
             # model_state = self.model.state_dict()
             # filtered_ckpt = {}
             # skipped_keys = []
