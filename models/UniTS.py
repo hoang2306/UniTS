@@ -640,6 +640,15 @@ class Model(nn.Module):
         self.position_embedding = LearnablePositionalEmbedding(args.d_model)
         self.prompt2forecat = DynamicLinear(128, 128, fixed_in=args.prompt_num)
 
+        # text MLP adapter and settings
+        d_text = getattr(args, 'd_text', 1024)
+        self.text_adapter = nn.Sequential(
+            nn.Linear(d_text, args.d_model),
+            nn.GELU(),
+            nn.Linear(args.d_model, args.d_model)
+        )
+        self.text_fusion_type = getattr(args, 'text_fusion_type', 'add_patch')
+
         # basic blocks
         self.block_num = args.e_layers
         self.blocks = nn.ModuleList(
@@ -679,7 +688,7 @@ class Model(nn.Module):
         x, n_vars = self.patch_embeddings(x)
         return x, means, stdev, n_vars, padding
 
-    def prepare_prompt(self, x, n_vars, prefix_prompt, task_prompt, task_prompt_num, task_name=None, mask=None):
+    def prepare_prompt(self, x, n_vars, prefix_prompt, task_prompt, task_prompt_num, task_name=None, mask=None, text_feats=None):
         x = torch.reshape(
             x, (-1, n_vars, x.shape[-2], x.shape[-1]))
         # append prompt tokens
@@ -720,8 +729,25 @@ class Model(nn.Module):
             x = x + self.position_embedding(x)
             x = torch.cat((this_prompt, x), dim=2)
         elif task_name == 'anomaly_detection':
-            x = x + self.position_embedding(x)
-            x = torch.cat((this_prompt, x), dim=2)
+            if text_feats is not None:
+                if self.text_fusion_type == 'add_patch':
+                    x = x + text_feats
+                    x = x + self.position_embedding(x)
+                    x = torch.cat((this_prompt, x), dim=2)
+                elif self.text_fusion_type == 'add_prompt':
+                    text_prompt = text_feats.mean(dim=2, keepdim=True)
+                    text_prompt = text_prompt.repeat(1, 1, this_prompt.shape[2], 1)
+                    this_prompt = this_prompt + text_prompt
+                    x = x + self.position_embedding(x)
+                    x = torch.cat((this_prompt, x), dim=2)
+                elif self.text_fusion_type == 'concat_prompt':
+                    x = x + self.position_embedding(x)
+                    x = torch.cat((this_prompt, text_feats, x), dim=2)
+                else:
+                    raise ValueError(f"Unknown text_fusion_type: {self.text_fusion_type}")
+            else:
+                x = x + self.position_embedding(x)
+                x = torch.cat((this_prompt, x), dim=2)
 
         return x
 
@@ -810,17 +836,37 @@ class Model(nn.Module):
 
         return x
 
-    def anomaly_detection(self, x, x_mark, task_id):
+    def anomaly_detection(self, x, x_mark, task_id, text_embeddings=None):
         dataset_name = self.configs_list[task_id][1]['dataset']
         prefix_prompt = self.prompt_tokens[dataset_name]
 
         seq_len = x.shape[1]
         x, means, stdev, n_vars, padding = self.tokenize(x)
 
+        text_feats = None
+        if text_embeddings is not None:
+            remainder = text_embeddings.shape[1] % self.patch_len
+            if remainder != 0:
+                pad_len = self.patch_len - remainder
+                text_embeddings = F.pad(text_embeddings, (0, 0, 0, pad_len))
+            B, L_padded, d_text = text_embeddings.shape
+            num_patches = L_padded // self.patch_len
+            text_embeddings_patched = text_embeddings.view(B, num_patches, self.patch_len, d_text)
+            text_embeddings_pooled = text_embeddings_patched.mean(dim=2)
+            text_feats = self.text_adapter(text_embeddings_pooled)
+            text_feats = text_feats.unsqueeze(1).repeat(1, n_vars, 1, 1)
+
         x = self.prepare_prompt(x, n_vars, prefix_prompt,
-                                None, None, task_name='anomaly_detection')
-        seq_token_len = x.shape[-2]-prefix_prompt.shape[2]
-        x = self.backbone(x, prefix_prompt.shape[2], seq_token_len)
+                                None, None, task_name='anomaly_detection', text_feats=text_feats)
+        
+        if text_feats is not None and self.text_fusion_type == 'concat_prompt':
+            prefix_len = prefix_prompt.shape[2] + text_feats.shape[2]
+            seq_token_len = x.shape[-2] - prefix_len
+        else:
+            prefix_len = prefix_prompt.shape[2]
+            seq_token_len = x.shape[-2] - prefix_len
+
+        x = self.backbone(x, prefix_len, seq_token_len)
 
         x = self.forecast_head(
             x, seq_len+padding, seq_token_len)
@@ -965,7 +1011,7 @@ class Model(nn.Module):
             return cls_dec_out
 
     def forward(self, x_enc, x_mark_enc, x_dec=None, x_mark_dec=None,
-                mask=None, task_id=None, task_name=None, enable_mask=None):
+                mask=None, task_id=None, task_name=None, enable_mask=None, text_embeddings=None):
         if task_name == 'long_term_forecast' or task_name == 'short_term_forecast':
             dec_out = self.forecast(x_enc, x_mark_enc, task_id)
             return dec_out  # [B, L, D]
@@ -974,7 +1020,7 @@ class Model(nn.Module):
                 x_enc, x_mark_enc, mask, task_id)
             return dec_out  # [B, L, D]
         if task_name == 'anomaly_detection':
-            dec_out = self.anomaly_detection(x_enc, x_mark_enc, task_id)
+            dec_out = self.anomaly_detection(x_enc, x_mark_enc, task_id, text_embeddings=text_embeddings)
             return dec_out  # [B, L, D]
         if task_name == 'classification':
             dec_out = self.classification(x_enc, x_mark_enc, task_id)

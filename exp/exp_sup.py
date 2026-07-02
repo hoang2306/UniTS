@@ -255,7 +255,9 @@ class Exp_All_Task(object):
     def choose_training_parts(self, prompt_tune=False):
         for name, param in self.model.named_parameters():
             if prompt_tune:
-                if 'prompt_token' in name or 'mask_prompt' in name or 'cls_prompt' in name or 'mask_token' in name or 'cls_token' in name or 'category_token' in name:
+                if 'prompt_token' in name or 'mask_prompt' in name or 'cls_prompt' in name or \
+                   'mask_token' in name or 'cls_token' in name or 'category_token' in name or \
+                   'text_adapter' in name:
                     param.requires_grad = True
                     print("trainable:", name)
                 else:
@@ -537,13 +539,18 @@ class Exp_All_Task(object):
         task_name = config['task_name']
         features = config['features']
 
-        batch_x, _ = this_batch
+        batch_text = None
+        if len(this_batch) >= 3:
+            batch_x, _, batch_text = this_batch[:3]
+            batch_text = batch_text.float().to(self.device_id)
+        else:
+            batch_x, _ = this_batch
 
         batch_x = batch_x.float().to(self.device_id)
 
         with torch.cuda.amp.autocast():
             outputs = model(batch_x, None, None,
-                            None, task_id=task_id, task_name=task_name)
+                            None, task_id=task_id, task_name=task_name, text_embeddings=batch_text)
             f_dim = -1 if features == 'MS' else 0
             outputs = outputs[:, :, f_dim:]
             loss = criterion(outputs, batch_x)
@@ -792,11 +799,17 @@ class Exp_All_Task(object):
         self.model.eval()
         # (1) stastic on the train set
         with torch.no_grad():
-            for i, (batch_x, batch_y) in enumerate(train_loader):
+            for i, batch in enumerate(train_loader):
+                batch_text = None
+                if len(batch) >= 3:
+                    batch_x, _, batch_text = batch[:3]
+                    batch_text = batch_text.float().to(self.device_id)
+                else:
+                    batch_x, _ = batch
                 batch_x = batch_x.float().to(self.device_id)
                 # reconstruction
                 outputs = self.model(
-                    batch_x, None, None, None, task_id=task_id, task_name='anomaly_detection')
+                    batch_x, None, None, None, task_id=task_id, task_name='anomaly_detection', text_embeddings=batch_text)
                 # criterion
                 score = torch.mean(anomaly_criterion(batch_x, outputs), dim=-1)
                 score = score.detach().cpu()
@@ -809,11 +822,17 @@ class Exp_All_Task(object):
         # (2) find the threshold
         attens_energy = []
         test_labels = []
-        for i, (batch_x, batch_y) in enumerate(test_loader):
+        for i, batch in enumerate(test_loader):
+            batch_text = None
+            if len(batch) >= 3:
+                batch_x, batch_y, batch_text = batch[:3]
+                batch_text = batch_text.float().to(self.device_id)
+            else:
+                batch_x, batch_y = batch
             batch_x = batch_x.float().to(self.device_id)
             # reconstruction
             outputs = self.model(batch_x, None, None, None,
-                                 task_id=task_id, task_name='anomaly_detection')
+                                 task_id=task_id, task_name='anomaly_detection', text_embeddings=batch_text)
             # criterion
             score = torch.mean(anomaly_criterion(batch_x, outputs), dim=-1)
             score = score.detach().cpu()
