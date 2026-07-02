@@ -282,6 +282,7 @@ class Exp_All_Task(object):
             print('loading pretrained model:',
                   pretrain_weight_path, folder=self.path)
             if 'pretrain_checkpoint.pth' in pretrain_weight_path:
+                print(f'Loading student weights from {pretrain_weight_path}', folder=self.path)
                 state_dict = torch.load(
                     pretrain_weight_path, map_location='cpu', weights_only=False)['student']
                 ckpt = {}
@@ -289,6 +290,7 @@ class Exp_All_Task(object):
                     if not ('cls_prompts' in k):
                         ckpt[k] = v
             else:
+                print(f'Loading weights from {pretrain_weight_path}', folder=self.path)
                 ckpt = torch.load(pretrain_weight_path, map_location='cpu', weights_only=False)
             # model_state = self.model.state_dict()
             # filtered_ckpt = {}
