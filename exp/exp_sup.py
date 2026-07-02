@@ -308,7 +308,11 @@ class Exp_All_Task(object):
 
             # error: module.prompt_tokens.Weather
             # print ("error: module.prompt_tokens.Weather", folder=self.path)
-            print(self.model.state_dict().keys(), folder=self.path)
+            # print(self.model.state_dict().keys(), folder=self.path)
+            print(self.model.module.prompt_tokens.keys())
+            for k in self.module.prompt_tokens.keys():
+                print(self.module.prompt_tokens[k].shape)
+
 
             msg = self.model.load_state_dict(ckpt, strict=False)
             print(msg, folder=self.path)
