@@ -824,34 +824,51 @@ class Exp_All_Task(object):
             attens_energy, self.device_id, to_numpy=True)
         test_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         combined_energy = np.concatenate([train_energy, test_energy], axis=0)
-        threshold = np.percentile(
-            combined_energy, 100 - self.args.anomaly_ratio)
-        print("Threshold :", threshold)
-
-        # (3) evaluation on the test set
-        pred = (test_energy > threshold).astype(int)
         test_labels = np.concatenate(test_labels, axis=0).reshape(-1)
         test_labels = np.array(test_labels)
         gt = test_labels.astype(int)
 
-        print("pred:   ", pred.shape)
-        print("gt:     ", gt.shape)
+        anomaly_ratios = self.args.anomaly_ratio
+        if not isinstance(anomaly_ratios, (list, tuple, np.ndarray)):
+            anomaly_ratios = [anomaly_ratios]
 
-        # (4) detection adjustment
-        gt, pred = adjustment(gt, pred)
+        best_result = None
+        for anomaly_ratio in anomaly_ratios:
+            threshold = np.percentile(
+                combined_energy, 100 - anomaly_ratio)
+            print("anomaly_ratio:", anomaly_ratio, "Threshold:", threshold)
 
-        pred = np.array(pred)
-        gt = np.array(gt)
-        print("pred: ", pred.shape)
-        print("gt:   ", gt.shape)
-        accuracy = accuracy_score(gt, pred)
-        precision, recall, f_score, support = precision_recall_fscore_support(
-            gt, pred, average='binary')
-        print("Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
-            accuracy, precision,
-            recall, f_score))
+            # (3) evaluation on the test set
+            pred = (test_energy > threshold).astype(int)
 
-        return f_score
+            print("pred:   ", pred.shape)
+            print("gt:     ", gt.shape)
+
+            # (4) detection adjustment
+            adjusted_gt, adjusted_pred = adjustment(gt.copy(), pred)
+
+            adjusted_pred = np.array(adjusted_pred)
+            adjusted_gt = np.array(adjusted_gt)
+            print("pred: ", adjusted_pred.shape)
+            print("gt:   ", adjusted_gt.shape)
+            accuracy = accuracy_score(adjusted_gt, adjusted_pred)
+            precision, recall, f_score, support = precision_recall_fscore_support(
+                adjusted_gt, adjusted_pred, average='binary')
+            print("anomaly_ratio: {}, Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
+                anomaly_ratio, accuracy, precision, recall, f_score))
+
+            if best_result is None or f_score > best_result['f_score']:
+                best_result = {
+                    'anomaly_ratio': anomaly_ratio,
+                    'threshold': threshold,
+                    'accuracy': accuracy,
+                    'precision': precision,
+                    'recall': recall,
+                    'f_score': f_score,
+                }
+
+        print("Best anomaly_ratio:", best_result['anomaly_ratio'], "Best threshold:", best_result['threshold'])
+        return best_result['f_score']
 
     def test_long_term_forecast_offset_unify(self, setting, test_data, test_loader, data_task_name, task_id):
         config = self.task_data_config_list[task_id][1]

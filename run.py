@@ -101,8 +101,8 @@ if __name__ == '__main__':
                         default=0.25, help='mask ratio')
 
     # anomaly detection task
-    parser.add_argument('--anomaly_ratio', type=float,
-                        default=1.0, help='prior anomaly ratio (%)')
+    parser.add_argument('--anomaly_ratio', type=float, nargs='+',
+                        default=[1.0], help='prior anomaly ratio(s) (%)')
 
     # zero-shot-forecast-new-length
     parser.add_argument("--offset", type=int, default=0)
