@@ -305,6 +305,11 @@ class Exp_All_Task(object):
             # if skipped_keys:
             #     print('skip mismatched checkpoint keys:', skipped_keys, folder=self.path)
             # msg = self.model.load_state_dict(filtered_ckpt, strict=False)
+
+            # error: module.prompt_tokens.Weather
+            # print ("error: module.prompt_tokens.Weather", folder=self.path)
+            print(self.model.state_dict().keys(), folder=self.path)
+
             msg = self.model.load_state_dict(ckpt, strict=False)
             print(msg, folder=self.path)
 
