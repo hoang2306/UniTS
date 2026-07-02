@@ -834,6 +834,8 @@ class Exp_All_Task(object):
 
         best_result = None
         for anomaly_ratio in anomaly_ratios:
+            print("=" * 80)
+            print("Evaluating anomaly_ratio:", anomaly_ratio)
             threshold = np.percentile(
                 combined_energy, 100 - anomaly_ratio)
             print("anomaly_ratio:", anomaly_ratio, "Threshold:", threshold)
@@ -866,6 +868,8 @@ class Exp_All_Task(object):
                     'recall': recall,
                     'f_score': f_score,
                 }
+
+            print("-" * 80)
 
         print("Best anomaly_ratio:", best_result['anomaly_ratio'], "Best threshold:", best_result['threshold'])
         return best_result['f_score']
