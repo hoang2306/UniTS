@@ -96,7 +96,7 @@ task_dataset:
     dataset: Environment
     data: Environment
     root_path: ../dataset/Environment
-    seq_len: 24
+    seq_len: 72
     label_len: 0
     pred_len: 0
     features: M
@@ -111,7 +111,7 @@ task_dataset:
     dataset: EWJ
     data: EWJ
     root_path: ../dataset/EWJ
-    seq_len: 24
+    seq_len: 48
     label_len: 0
     pred_len: 0
     features: M
